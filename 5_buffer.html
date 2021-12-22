@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<script src="lib.js"></script>
+<!-- 顶点着色器 -->
+<script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 aPosition;
+    void main(){
+      gl_Position = aPosition;
+      gl_PointSize = 50.0;
+    }
+  </script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+    void main(){
+      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    }
+  </script>
+
+<script type="module">
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  // const gl = glClass.gl;
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+  const dataVertices = new Float32Array([
+    0.0, 0.0,
+    0.5, 0.5,
+    0.5, -0.5,
+    -0.5, -0.5,
+    -0.5, 0.5,
+  ])
+
+  const bufferParams = {
+    aPosition:{
+      value:dataVertices,
+      length:2
+    },
+  };
+  const program = gl.initShadeProgram({ vsSource, fsSource })
+  gl.setBuffers({bufferParams})
+  gl.drawPoint(5)
+</script>
+
+</html>

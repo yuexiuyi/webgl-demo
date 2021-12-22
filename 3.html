@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<!-- 顶点着色器 -->
+<script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 aPosition;
+    void main(){
+      gl_Position = aPosition;
+      gl_PointSize = 50.0;
+    }
+  </script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+
+    void main(){
+      gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+    }
+  </script>
+<script type="module">
+
+  class Gl {
+    constructor(canvas) {
+      this.gl = canvas.getContext("webgl");
+
+      if (!this.gl) {
+        alert('无法初始化Webgl，你的浏览器、操作系统或硬件等可能不支持WebGL。')
+        return;
+      }
+    }
+
+    // 创建指定类型的着色器，上传source源码并编译
+    loadShader({ type, source }) {
+      const { gl } = this;
+
+      const shader = gl.createShader(type);
+
+      // 传递source给着色器对象
+
+      gl.shaderSource(shader, source);
+
+      // 编译着色器程序
+
+      gl.compileShader(shader);
+
+      // 判断是否编译成功
+
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert('着色器编译失败：' + gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+
+      return shader;
+    }
+
+    // 初始化着色器程序，让WebGL知道如何绘制我们的数据
+    initShadeProgram({ vsSource, fsSource }) {
+      const { gl } = this;
+      const vertexShader = this.loadShader({ type: gl.VERTEX_SHADER, source: vsSource });
+      const fragmentShader = this.loadShader({ type: gl.FRAGMENT_SHADER, source: fsSource });
+
+      // 创建着色器程序
+      const shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vertexShader);
+      gl.attachShader(shaderProgram, fragmentShader);
+      gl.linkProgram(shaderProgram);
+
+      // 创建失败
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('初始化程序失败：' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+      }
+
+      return shaderProgram;
+    }
+
+    // 创建程序参数信息
+    initProgramInfo({ shaderProgram }) {
+      const { gl } = this;
+      return {
+        program: shaderProgram,
+        attribLocations: {
+          uPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
+        },
+        uniformLocations: {
+        }
+      }
+    }
+
+    drawScene({ programInfo, shaderProgram }) {
+      const { gl } = this;
+      gl.clearColor(1.0, 1.0, 1.0, 1.0);  // 用不透明黑色清空画布
+
+      gl.vertexAttrib4f(programInfo.attribLocations.aPosition, 0.0, 0.0, 0.0, 1.0);
+
+      // 清除画布在绘制前
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(programInfo.program);
+      gl.drawArrays(gl.POINT, 0, 1);
+
+    }
+
+  }
+
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+
+  const shaderProgram = gl.initShadeProgram({ vsSource, fsSource })
+  const programInfo = gl.initProgramInfo({ shaderProgram })
+  gl.drawScene({ programInfo, shaderProgram })
+
+
+
+
+</script>
+
+</html>

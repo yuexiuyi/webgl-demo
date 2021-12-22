@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<!-- 顶点着色器 -->
+<script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 aPosition;
+    void main(){
+      gl_Position = aPosition;
+      gl_PointSize = 50.0;
+    }
+  </script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+    precision lowp float;
+    uniform vec4 uColor;
+    void main(){
+      gl_FragColor = uColor;
+    }
+  </script>
+
+<script type="module">
+
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+  const params = {
+    aPosition: [0.0, 0.0, 0.0, 1.0],
+    uColor: [1.0, 0.0, 0.0, 1.0]
+  };
+  gl.initShadeProgram({ vsSource, fsSource })
+  gl.setProgramParams({params})
+  gl.drawPoint(1)
+
+
+</script>
+
+</html>

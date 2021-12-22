@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<script src="matrix.js"></script>
+<!-- 顶点着色器 -->
+
+<script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 aPosition;
+    attribute float aSize;
+    void main(){
+      gl_Position = aPosition;
+      gl_PointSize = aSize;
+    }
+  </script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+    void main(){
+      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    }
+  </script>
+
+<script type="module">
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+  const dataVertices = new Float32Array([
+    0.0,0.0,
+    0.3,0.3,
+    0.6,0.0,
+  ])
+  const dataSize = new Float32Array([10.0, 20.0, 30.0]);
+
+  const bufferParams = {
+    aPosition:{
+      value:dataVertices,
+      length:2
+    },
+    aSize:{
+      value:dataSize
+    },
+  };
+
+  const program = gl.initShadeProgram({ vsSource, fsSource })
+  gl.setBuffers({bufferParams})
+  gl.drawPoint(3)
+
+
+
+
+
+</script>
+
+</html>

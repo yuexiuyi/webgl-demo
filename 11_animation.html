@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<script src="matrix.js"></script>
+<!-- 顶点着色器 -->
+
+<script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 aPosition;
+    uniform mat4 uTranslate;
+    uniform mat4 uRotate;
+    uniform mat4 uScale;
+    void main(){
+      gl_Position = aPosition*uTranslate*uRotate*uScale;
+    }
+  </script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+    void main(){
+      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    }
+  </script>
+
+<script type="module">
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  const matrix = new Matrix();
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+  const dataVertices = new Float32Array([
+    0.0, 0.0,
+    0.3, 0.3,
+    0.6, 0.0,
+  ])
+
+  const bufferParams = {
+    aPosition:{
+      value:dataVertices,
+      length:2
+    },
+  };
+  const program = gl.initShadeProgram({ vsSource, fsSource })
+  gl.setBuffers({bufferParams})
+  let angle =0.0;
+  let scaleX =1.0;
+  let scaleY =1.0;
+
+
+  const draw =()=>{
+    angle += 1.0;
+    scaleX -= 0.01;
+    scaleY -= 0.01;
+    const params = {
+      uRotate:matrix.rotateZ(angle),
+      uScale:matrix.scale(scaleX,scaleY,1.0),
+      uTranslate:matrix.translate(0.0,0.0,0.0),
+    };
+    gl.setProgramParams({params})
+    gl.drawTriangle(3)
+  }
+
+  const run = ()=> {
+    draw();
+    const ani = requestAnimationFrame(run);
+    if(scaleX<0){
+      cancelAnimationFrame(ani)
+    }
+  }
+
+  run();
+
+
+
+</script>
+
+</html>
