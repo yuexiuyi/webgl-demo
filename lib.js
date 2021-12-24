@@ -1,6 +1,7 @@
 class Gl {
   constructor(canvas){
     this.gl = canvas.getContext("webgl");
+    this.texUnits = {};
 
     if(!this.gl){
       alert('无法初始化Webgl，你的浏览器、操作系统或硬件等可能不支持WebGL。')
@@ -142,7 +143,6 @@ class Gl {
       const length = item.length ? item.length : 1;
       const offset = item.offset ? item.offset : 0;
       const stride = item.stride ? item.stride : 0;
-      console.log(offset)
       const location = gl.getAttribLocation(program, key);
       gl.vertexAttribPointer(location, length, gl.FLOAT, false, stride*fSize, offset*fSize);
       gl.enableVertexAttribArray(location)
@@ -154,7 +154,7 @@ class Gl {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // 用不透明黑色清空画布
     // 清除画布在绘制前
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      if (count > 1) {
+    if (count > 1) {
       gl.drawArrays(gl.POINTS, 0, count);
     } else {
       gl.drawArrays(gl.POINT, 0, 1);
@@ -182,4 +182,39 @@ class Gl {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, count);//三角形扇
   }
 
+
+  initTexture({key,texUnit,draw,src}) {
+    const { gl, program } = this;
+    const texture = gl.createTexture();
+    const uSampler = gl.getUniformLocation(program, key)
+    const image = new Image();
+    image.crossOrigin= 'Anonymous'
+    this.texUnits[texUnit] = false;
+    image.onload = () => {
+      this.loadTexture({ texture, uSampler, image, texUnit });
+      let isAllLoad = true;
+      for (const key in this.texUnits) {
+        const isLoad = this.texUnits[key];
+        isAllLoad = isLoad ? isLoad : false;
+      }
+      if (isAllLoad) {
+        draw();
+      }
+    }
+    image.src = src;
+  }
+
+  loadTexture({texture,uSampler,image,texUnit}) {
+    const { gl } = this;
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+    const key = `TEXTURE${texUnit}`;
+    this.texUnits[texUnit] = true;
+    gl.activeTexture(gl[key]);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+    gl.uniform1i(uSampler, texUnit)
+  }
 }
