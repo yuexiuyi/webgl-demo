@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id='canvas' width="512" height="512"></canvas>
+</body>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<script src="matrix.js"></script>
+<script src="cuon-matrix.js"></script>
+<!-- 顶点着色器 -->
+<script id="vertexShader" type="x-shader/x-vertex">
+  attribute vec4 aPosition;
+  attribute vec4 aColor;
+  varying vec4 vColor;
+  uniform mat4 uViewMatrix;
+  uniform mat4 uModelMatrix;
+  void main(){
+    gl_Position = uViewMatrix * uModelMatrix * aPosition;
+    vColor = aColor;
+  }
+</script>
+<!-- 片元着色器 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+  precision lowp float;
+  varying vec4 vColor;
+  void main(){
+    gl_FragColor = vColor;
+  }
+</script>
+<script type="module">
+  const canvas = document.getElementById('canvas');
+  const gl = new Gl(canvas);
+  const vsSource = document.getElementById('vertexShader').innerText;
+  const fsSource = document.getElementById('fragmentShader').innerText;
+  const dataVertices = new Float32Array([
+    0.0,0.5,-0.4, 1.0,0.0,0.0,
+    -0.5,-0.5,-0.4, 1.0,0.0,0.0,
+    0.5,-0.5,-0.4, 1.0,0.0,0.0,
+
+    0.5,0.4,-0.2, 0.0,1.0,0.0,
+    -0.5,0.4,-0.2, 0.0,1.0,0.0,
+    0.0,-0.6,-0.2, .0,1.0,0.0,
+
+    0.0,0.5,0.0, 0.0,0.0,1.0,
+    -0.5,-0.5,0.0, 0.0,0.0,1.0,
+    0.5,-0.5,0.0, 0.0,0.0,1.0,
+  ]);
+
+  const bufferParams = {
+    value:dataVertices,
+    keys: {
+      aPosition:{
+        length:3,
+        stride:6
+      },
+      aColor:{
+        length:3,
+        stride:6,
+        offset:3,
+      },
+    }
+  };
+
+  const program = gl.initShadeProgram({ vsSource, fsSource })
+
+  const eyes = { x: 0.25, y: 0.1, z: 0.25 };
+  const center = { x: 0.0, y: 0.0, z: 0.0 };
+  const normal = { x: 0.0, y: 0.0, z: 1.0 };
+  let angle = 0.0;
+
+  gl.setBuffer({bufferParams})
+
+
+  const run = () =>{
+    gl.setViewMatrix({eyes,center,normal});
+    gl.setModelMatrix({angle,axis:'y'});
+    gl.drawTriangle(9)
+  }
+
+  window.onkeydown = (e) => {
+    if(e.keyCode === 38){
+      eyes.y -= 0.05;
+    }
+    if(e.keyCode === 40){
+      eyes.y += 0.05;
+    }
+    if(e.keyCode === 39){
+      eyes.x -= 0.05;
+    }
+    if(e.keyCode === 37){
+      eyes.x += 0.05;
+    }
+    if(e.keyCode === 87){
+      angle -= 10;
+    }
+    if(e.keyCode === 83){
+      angle += 10;
+    }
+    run();
+  }
+
+  run();
+
+
+</script>
+</html>
